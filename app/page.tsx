@@ -1,9 +1,9 @@
-import Sidebar from "./components/sidebar";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="flex min-h-screen">
-        <Sidebar></Sidebar>
+      
         <section className="flex-1">
           <header className="border-b border-zinc-800 px-8 py-5">
             <h2 className="text-lg font-medium">
