@@ -1,20 +1,66 @@
 # GraphLinear
 
-A modern issue tracker inspired by Linear, built around visualizing
-project dependencies and execution flow.
+GraphLinear is a visual project management platform designed for creative teams.
 
-## About
+Instead of simply showing a list of tasks, GraphLinear helps teams understand how their work is connected — what is done, what is in progress, what is blocked, and what needs to happen next.
 
-GraphLinear combines traditional issue management with:
+## The Problem
 
-- Kanban boards
-- Interactive dependency graphs
-- Project timelines
+In creative projects, work is often dependent on other people's work.
+
+For example:
+
+Brand Identity → Script → Shoot → Edit → Final Delivery
+
+When one task is delayed, the impact can be difficult to understand from a normal task list.
+
+Teams often end up asking:
+
+- What has been completed?
+- What is currently being worked on?
+- What is blocked?
+- Who or what is causing the delay?
+- What should we work on next?
+
+GraphLinear aims to make these answers immediately visible.
+
+## Core Idea
+
+GraphLinear connects project tasks and visually represents how work flows through a project.
+
+The goal is simple:
+
+> Complex project relationships underneath. Extremely simple understanding on top.
+
+A person should be able to open GraphLinear and understand the state of a project within seconds.
+
+## Planned Features
+
+- Issue and task management
+- Project management
+- Kanban workflow
+- Visual dependency graph
+- Project timeline
+- Blocked task detection
 - Dependency tracking
 - Critical path analysis
+- Shared project state across different views
 
-The goal is to explore modern frontend engineering, state management,
-and graph-based project visualization.
+## Example
+
+A creative project might look like:
+
+Research
+↓
+Script
+↓
+Shoot
+↓
+Video Edit
+↓
+Final Delivery
+
+If the Shoot is delayed, GraphLinear should make it immediately obvious that the Video Edit and Final Delivery are also affected.
 
 ## Tech Stack
 
@@ -27,20 +73,33 @@ and graph-based project visualization.
 
 ## Current Status
 
-🚧 Currently under development.
+🚧 Under active development.
 
-## Roadmap
+### Progress
 
 - [x] Project setup
-- [x] Basic application layout
+- [x] GitHub repository
+- [x] README
+- [x] Application layout
 - [x] Reusable Sidebar
-- [ ] Issue management
+- [x] Application routing
+- [x] Basic project pages
+- [ ] Issue system
+- [ ] Shared application state
 - [ ] Kanban board
 - [ ] Dependency graph
-- [ ] Timeline view
+- [ ] Dependency validation
 - [ ] Critical path analysis
+- [ ] Timeline view
+- [ ] Supabase integration
 - [ ] Authentication
 - [ ] Deployment
+
+## Vision
+
+GraphLinear is being built as an exploration of modern frontend engineering, application architecture, state management, and visualizing complex relationships through simple interfaces.
+
+The initial focus is on creative teams, where projects often involve interconnected work across design, video, branding, AI, and other creative disciplines.
 
 ## Author
 
