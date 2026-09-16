@@ -84,9 +84,9 @@ If the Shoot is delayed, GraphLinear should make it immediately obvious that the
 - [x] Reusable Sidebar
 - [x] Application routing
 - [x] Basic project pages
-- [ ] Issue system
-- [ ] Shared application state
-- [ ] Kanban board
+- [x] Issue system
+- [x] Shared application state
+- [x] Kanban board
 - [ ] Dependency graph
 - [ ] Dependency validation
 - [ ] Critical path analysis
@@ -94,6 +94,7 @@ If the Shoot is delayed, GraphLinear should make it immediately obvious that the
 - [ ] Supabase integration
 - [ ] Authentication
 - [ ] Deployment
+
 
 ## Vision
 
