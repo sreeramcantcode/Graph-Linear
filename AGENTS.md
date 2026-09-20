@@ -238,135 +238,407 @@ Optimize for a coherent vertical slice.
 ---
 
 
+
 # Immediate Task
 
 ## FEATURE
-Edit the Kanban/page.tsx which displays the Kanban view of the issues which are presented as cards in columns grouped based on issue.status :
 
-1.Todo 
-2.In Progress
-3.Done
-
+* The Projects page will display the list of projects, with project data managed by the Zustand `projectStore`, which is not created yet.
+* The user must be able to create a new project from the Projects page.
+* Every project must provide dynamic Issues, Kanban, Timeline, and Graph views determined by the `id` of the selected project.
+* Each project will be displayed as a rectangular card that allows the user to select between the available project views through a pop-up modal.
+* Each newly created project must follow the existing `Project` type and must be added to the Zustand `projectStore`.
+* Every project card must provide an option to delete the project.
+* A project must be able to receive newly created issues through its `projectId`, allowing those issues to appear in all relevant project views.
 
 ## GOAL
 
-Provide users with a clear visual overview of the current state of all issues by organizing them into status-based columns, so they can quickly understand what work is pending, in progress, and completed.
+The Projects page displays all existing projects and serves as the place where project context is established for the other views.
 
-The Kanban view must represent the same issue data used throughout GraphLinear, with Zustand remaining the single source of truth.
+It provides an organized place for users to create, view, access, and manage their projects while ensuring that issues and project views remain associated with the correct project.
 
 ## USER EXPERIENCE
 
-The user should be able to:
+The user on the Projects page should be able to:
 
-1. View all issues as clear, polished cards organized into three status columns:
+1. View all existing projects as rectangular cards arranged vertically.
 
-   * Todo
-   * In Progress
-   * Done
+2. Create a new project from the Projects page by providing the required project information.
 
-2. Quickly understand the status and important issue information through visual UI elements such as status indicators and icons, rather than relying only on plain text.
+3. After creating a project, see the newly created project appear in the list of project cards without requiring a page refresh.
 
-3. Update an issue's status directly from its Kanban card. When the status changes, the issue should immediately move to the corresponding status column.
+4. Click a project card that contains issues and view a `ChooseView.tsx` modal that allows the user to choose between:
 
-4. See the issue's existing information on the card, including its title, description, priority, and assignee.
+   * Issues
+   * Kanban
+   * Timeline
+   * Graph
 
+5. Clicking any of the four options in the modal should open the corresponding view for the selected project.
+
+6. See the text `"No issues here"` within the project card when the project does not contain any issues associated with its `id`.
+
+7. When the user clicks a project card with no issues, see a `NoIssueFound.tsx` modal displaying `"No issues present"` with a Cancel button.
+
+8. A project card with no issues must not open `ChooseView.tsx`.
+
+9. Click the Cancel button in `NoIssueFound.tsx` to close the modal.
+
+10. Create issues while working within the context of a selected project. Newly created issues must be associated with that project.
+
+11. See newly created issues appear in the selected project's Issues, Kanban, Timeline, and Graph views where applicable.
+
+12. Every project card must provide a delete option.
+
+13. When the user selects the delete option, a confirmation modal must be displayed with Confirm and Cancel options.
+
+14. View project cards without layout breaks, content overflow, or text misalignment across supported screen sizes.
 
 ## DATA
 
-The Kanban page must use the same issue data available to the rest of GraphLinear.
+The Projects page will get project data from the Zustand `projectStore`, which is yet to be created.
 
-Each Kanban issue card requires the following fields:
+The `Project` type will be used as the blueprint for project data.
 
-* `issue.id`
-* `issue.title`
-* `issue.description`
-* `issue.status`
-* `issue.priority`
-* `issue.assignee`
+Each project card will use:
 
-The Kanban page does not need `projectId` or `dependencies` for V1.
+1. `project.name` — displayed as the project name on the card.
+2. `project.id` — uniquely identifies the project and establishes the project context for its views.
+3. The relationship between `project.id` and `issue.projectId` will be used to determine which issues belong to the project.
 
+Newly created projects must use the same `Project` type as the existing mock project data.
+
+Project IDs must be automatically generated as unique IDs in the `GL-XXX` format, for example `GL-102`.
+
+The existing `Issue` type will continue to be used for issues. A newly created issue must contain the `projectId` of the currently selected project so that it belongs to that project.
 
 ## STATE
 
-The existing Zustand `issueStore` remains the single source of truth for all issue data, including each issue's current `status`.
+The existing Zustand `issueStore` remains the single source of truth for all issue data.
 
-The Kanban page must read its issues from the existing Zustand `issues` state and must not create a separate copy of the issue data.
+The new Zustand `projectStore` will be the single source of truth for all project data.
 
-Any status update made from the Kanban must update the corresponding issue in Zustand.
+The `projectStore` must provide:
 
-Any temporary UI state required for opening/closing the status-edit interaction or tracking the currently selected issue may remain local to the Kanban component and must not replace or duplicate the Zustand issue state.
+* The project state required by the Projects page.
+* An `addProject` action for adding newly created projects.
+* A `deleteProject` action for deleting existing projects.
 
-Do not introduce another global state-management system
+The `issueStore` must continue to provide the issue state and issue actions required by the existing Issues functionality.
 
+The Projects page must not create a separate local copy of the projects or issues.
 
+Project context must be determined by the selected project's `id`. The project ID must be used to scope the Issues, Kanban, Timeline, and Graph views to the selected project.
+
+The project relationship must remain normalized:
+
+```text
+Project
+  id: "project-1"
+       ↓
+Issue
+  projectId: "project-1"
+```
+
+A newly created issue associated with a selected project must update the existing Zustand `issueStore`.
+
+All project-scoped views must derive their issue data from the updated Zustand state.
+
+Deleting a project must also remove all issues whose `issue.projectId` matches the deleted project's `id`.
+
+No additional global state-management system should be introduced.
+
+For the current V1 implementation, project data is persisted in Zustand. Supabase persistence will be added later and is outside the scope of this task.
 
 ## BEHAVIOR
 
-The Kanban page must allow users to edit the `status` field only.
+### Project Creation
 
-1. An `EditStatusModal.tsx` modal must open when the user selects the status update option on a Kanban issue card.
+1. The Create Project button must open a project creation modal.
 
-2. The `EditStatusModal.tsx` must provide three status options:
+2. The modal must allow the user to enter the project name.
 
-   * Todo
-   * In Progress
-   * Done
+3. The project `id` must be automatically generated by the system as a unique ID in the `GL-XXX` format, for example `GL-102`. The user must not manually enter the ID.
 
-3. The modal must provide two functional buttons:
+4. The system must prevent creation when the project creation limit of 3 projects within 3 minutes has been reached.
 
-   **Update Status**
+5. Clicking Create must:
 
-   * Update the existing issue's `status` to the newly selected status.
-   * Keep all other fields of the issue unchanged.
-   * Update the issue's status in Zustand.
-   * Immediately move the issue's card to the column corresponding to its new status.
+   * Validate the project name.
+   * Generate a unique project ID.
+   * Create a new project using the existing `Project` type.
+   * Add the new project to the Zustand `projectStore`.
+   * Display the newly created project card without requiring a page refresh.
+   * Close the creation modal after successful creation.
 
-   **Cancel**
+6. The Discard button must:
 
-   * Keep the existing issue's status unchanged in Zustand.
-   * Discard any temporary status selection made in the modal.
-   * Close the modal.
-   * The UI must continue displaying the issue's existing status.
+   * Close the creation modal.
+   * Discard the temporary project name.
+   * Make no changes to `projectStore` or `issueStore`.
 
-4. Zustand remains the single source of truth. Once a status update is confirmed, all other views using the shared issue data must receive the updated status.
+### Project Display and Selection
+
+7. All existing and newly created projects must be displayed as project cards.
+
+8. Each project card must display the project's name.
+
+9. When a project contains one or more issues, clicking its card must open `ChooseView.tsx`.
+
+10. `ChooseView.tsx` must provide four view options:
+
+* Issues
+* Kanban
+* Timeline
+* Graph
+
+11. Selecting a view must open that view using the selected project's ID as its project context.
+
+12. When a project contains no issues, its card must display `"No issues here"`.
+
+13. Clicking a project card with no issues must open `NoIssueFound.tsx` instead of `ChooseView.tsx`.
+
+14. `NoIssueFound.tsx` must display `"No issues present"` and provide a Cancel button.
+
+15. Clicking Cancel must close the modal without modifying project or issue state.
+
+### Issue Creation
+
+16. When creating an issue within a selected project, the newly created issue must receive the selected project's `id` as its `projectId`.
+
+17. The newly created issue must be added to the existing Zustand `issueStore`.
+
+18. Once an issue is added to a project, that project must no longer be treated as an empty project.
+
+19. The newly created issue must become available to the project's relevant views through the shared Zustand issue state.
+
+### Project Deletion
+
+20. Clicking the Delete option on a project card must open a confirmation modal.
+
+21. The confirmation modal must provide Confirm and Cancel options.
+
+22. Clicking Cancel must:
+
+* Close the confirmation modal.
+* Leave the selected project unchanged.
+* Make no changes to `projectStore` or `issueStore`.
+
+23. Clicking Confirm must:
+
+* Delete the selected project from the Zustand `projectStore`.
+* Delete all issues associated with that project's `projectId` from the Zustand `issueStore`.
+* Update the Projects page immediately without requiring a page refresh.
+* Ensure that deleted project issues no longer appear in any project view.
+
+## EDGE CASES
+
+* The project name must not be blank or consist only of whitespace.
+* Clicking Discard after entering a project name must close the modal and must not modify `projectStore` or `issueStore`.
+* Generated project IDs must be unique among existing projects.
+* The system must not create a project when the 3-projects-within-3-minutes limit has been reached.
+* When the creation limit is reached, the Create Project action must be unavailable or prevented and the user should receive an appropriate indication that the limit has been reached.
+* If there are no projects currently, display `"No current projects"` with a Create Project button below it.
+* Deleting a project must delete all issues associated with that project's `projectId`.
+* Deleting one project must not delete or modify issues belonging to other projects.
+* Cancelling project deletion must leave both project and issue data unchanged.
+* When a project has no issues, clicking its card must not open `ChooseView.tsx`.
+* When a project has no issues, the Issues, Kanban, Timeline, and Graph views must display `"No issues present"` when accessed for that project.
+* Project cards must remain usable across supported screen sizes without layout breaks, content overflow, or text misalignment.
+* Newly created issues must always contain a valid `projectId` corresponding to the selected project.
+* A project ID must not be reused for another existing project.
+* The Projects page must not silently lose projects or issues when project or issue state changes.
+* If project data and issue data become inconsistent, issues referencing a nonexistent project must not be incorrectly displayed as belonging to another project.
+
+## CONSTRAINTS
+
+* Reuse the existing `Project` type.
+* Reuse the existing `Issue` type.
+* Reuse the existing Zustand `issueStore`.
+* Create and use a dedicated Zustand `projectStore` for project state.
+* Do not add an `issues` array to the `Project` type; maintain the normalized relationship through `issue.projectId`.
+* Do not introduce another state-management library.
+* Do not add Supabase or another persistence layer as part of this task.
+* Do not modify unrelated routes or components.
+* Preserve existing Issues functionality.
+* Project deletion must cascade to issues belonging to the deleted project.
+* Project creation must use the existing `Project` type and the same project data model as `mockProjects.ts`.
+* Avoid unnecessary dependencies.
+
+## DATA FLOW
+
+```text
+Projects Page
+      ↓
+projectStore.projects
+      ↓
+User selects Project
+      ↓
+project.id establishes project context
+      ↓
+Project-scoped view
+      ↓
+Filter issueStore.issues by issue.projectId
+      ↓
+Display only issues belonging to selected project
+```
+
+For project creation:
+
+```text
+User enters project name
+      ↓
+Create
+      ↓
+Generate unique GL-XXX project ID
+      ↓
+Create Project object
+      ↓
+projectStore.addProject()
+      ↓
+projectStore.projects updates
+      ↓
+Projects page rerenders
+      ↓
+New project card appears
+```
+
+For issue creation:
+
+```text
+Selected project
+      ↓
+selected project.id
+      ↓
+Create Issue
+      ↓
+issue.projectId = selected project.id
+      ↓
+issueStore.addIssue()
+      ↓
+project-scoped issue data updates
+      ↓
+Relevant project views rerender
+```
+
+For project deletion:
+
+```text
+Delete Project
+      ↓
+Confirmation
+      ↓
+Confirm
+      ↓
+projectStore.deleteProject(project.id)
+      +
+issueStore removes issues where
+issue.projectId === project.id
+      ↓
+Projects page and project data update
+```
+
+For project selection:
+
+```text
+Click Project Card
+       ↓
+Does project have issues?
+      /        \
+    YES         NO
+     ↓           ↓
+ChooseView   NoIssueFound
+     ↓           ↓
+Select view    Cancel
+     ↓
+project-specific route
+```
+
+## ACCEPTANCE CRITERIA
+
+1. All existing projects are displayed on the Projects page.
+2. A user can create a new project by entering a valid project name.
+3. Newly created projects receive a unique autogenerated `GL-XXX` ID.
+4. Newly created projects appear immediately without a page refresh.
+5. Newly created projects are stored in `projectStore`.
+6. The project creation modal can be cancelled without modifying Zustand state.
+7. Project cards display the project name.
+8. Projects containing issues open `ChooseView.tsx` when selected.
+9. `ChooseView.tsx` provides Issues, Kanban, Timeline, and Graph options.
+10. Selecting a view opens that view for the selected project.
+11. Projects without issues display `"No issues here"` on their cards.
+12. Selecting a project without issues opens `NoIssueFound.tsx` instead of `ChooseView.tsx`.
+13. `NoIssueFound.tsx` displays `"No issues present"` and can be closed using Cancel.
+14. A newly created issue receives the selected project's `id` as `projectId`.
+15. A newly created issue appears in the selected project's relevant views.
+16. Every project card provides a delete option.
+17. Selecting Delete opens a confirmation modal.
+18. Cancelling deletion leaves project and issue state unchanged.
+19. Confirming deletion removes the project from `projectStore`.
+20. Confirming deletion removes all issues belonging to that project.
+21. Deleting one project does not affect another project's issues.
+22. When no projects exist, `"No current projects"` and a Create Project button are displayed.
+23. The user cannot create more than 3 projects within a 3-minute window.
+24. When a project has no issues, its Issues, Kanban, Timeline, and Graph views display `"No issues present"` when accessed.
+25. Project cards remain responsive without layout breaks, text overflow, or misalignment.
+26. Existing Issues functionality remains intact.
+27. Project and issue state remain normalized through `project.id` and `issue.projectId`.
 
 
 ## UI REQUIREMENTS
 
-- Display three clearly separated status columns.
-- Each column must have a clear status heading.
-- Issue cards must display title, description, priority, and assignee.
-- Status should have a visually distinct indicator.
-- The layout must remain usable across desktop and smaller screen widths.
-- Empty columns must retain their structure and display an appropriate empty state.
+- All project cards should be stacked vertically, one after another.
+- Project cards should have a polished, glossy visual appearance consistent with GraphLinear's existing visual style.
+- Project cards should have clear spacing between them and remain visually distinct from one another.
+- Each project card should clearly display the project name.
+- Empty projects should display `"No issues here"` within the project card.
+- Each project card should provide a clearly accessible delete action.
+- The Create Project action should be clearly visible on the Projects page.
+- When no projects exist, display `"No current projects"` with the Create Project button below it.
 
+### Create Project Modal
 
-## EDGE CASES
+- The modal should follow the existing GraphLinear modal design language.
+- Provide a clear project name input.
+- Provide Create and Cancel/Discard actions.
+- Validation feedback should be clearly visible when the project name is invalid.
+- When the project creation limit is reached, the UI should clearly communicate that another project cannot currently be created.
 
-* The Kanban layout must remain responsive and usable when a large number of issue cards are present in one or more columns.
-* The status selector must allow only one status to be selected at a time.
-* If the user selects the issue's existing status, no issue fields should change.
-* If the user changes the status and then clicks Cancel, the original status must remain unchanged.
-* Empty status columns must remain visible and display an appropriate empty state rather than disappearing.
-* If there are no issues, the Kanban must display an appropriate empty state while retaining the three status columns.
-* An issue with an unexpected or unsupported status must not silently disappear from the Kanban.
+### ChooseView.tsx
 
+- The modal UI should remain visually consistent with the existing GraphLinear modals.
+- Display the four available project views clearly:
+  - Issues
+  - Kanban
+  - Timeline
+  - Graph
+- Each option should be clearly identifiable as an interactive selection.
+- The modal should provide an appropriate way to close/cancel without selecting a view.
 
-## DATA FLOW
+### NoIssueFound.tsx
 
-* The existing Zustand `issueStore.issues` state remains the single source of truth for all issue data.
-* The Kanban page reads the `issues[]` state from Zustand and derives the three columns — Todo, In Progress, and Done — by grouping issues according to their `issue.status`.
-* The required issue data from Zustand is passed to the corresponding Kanban cards for display.
-* When a user selects a new status in `EditStatusModal` and confirms the update, the existing issue's `status` is updated in Zustand.
-* Once Zustand is updated, the Kanban derives its columns from the updated `issues[]` state, causing the issue card to appear in its new status column. Other views using the same Zustand state also receive the updated status.
-* If the user clicks Cancel, the temporary status selection is discarded, the Zustand issue data remains unchanged, and the Kanban continues displaying the existing status.
+- The modal should follow the existing GraphLinear modal design language.
+- Display `"No issues present"`.
+- Provide a Cancel button.
+- The modal should clearly communicate that the selected project currently has no issues.
 
+### Delete Confirmation Modal
+
+- The confirmation modal should follow the existing GraphLinear modal design language.
+- Clearly communicate that deleting the project will also remove its associated issues.
+- Provide Confirm and Cancel actions.
+- The destructive action should be visually distinguishable from the Cancel action.
+
+### Responsive UI
+
+- Project cards should remain properly aligned and readable on smaller screen sizes.
+- Text should not overflow or become visually misaligned.
+- Modal content and actions should remain accessible on smaller screens.
 
 
 ## CONSTRAINTS
 
-* Reuse the existing `Issue` type. Do not create a separate Kanban-specific issue type.
+* Reuse the existing `Issue` and `Project` type. Do not create a separate Kanban-specific issue type.
 * Reuse the existing Zustand `issueStore` and its `issues` state.
 * Do not create a separate copy of the issue data for the Kanban page.
 * Do not add Supabase or any persistence layer as part of this task.
@@ -374,21 +646,6 @@ The Kanban page must allow users to edit the `status` field only.
 * Do not introduce unnecessary dependencies.
 * Do not rewrite or modify unrelated routes or components.
 * Preserve the existing Issues page and its Create, Edit, and Delete functionality.
-
-
-
-## Acceptance Criteria
-
-1. Every issue in the Kanban view has the option to edit only the status
-2. See the issue's existing information on the card, including its title, description, priority, and assignee in every card
-3. All Issues are grouped in respective columns based on `issue.status`
-4. Updation of status in zustand happens when user clicks Confirm on the `EditStatusModal`
-5. Cancel leaves the issue status unchanged and disacard any new selection in the modal.
-6. Issue Cards are moving instantly to their respective columns on changing status
-7. All stated edge cases are handled as suggested
-8. All UX requirements and UI requirements are implemented
-9. Zustand remains the single source of truth for all the views including Kanban
-10. No unrelated architecture changes.
 
 
 ## AFTER IMPLEMENTATION
