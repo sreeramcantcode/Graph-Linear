@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import EditStatusModal from "../components/EditStatusModal";
 import { useIssueStore } from "../store/issuestore";
 import { Issue } from "../types/issue";
@@ -97,10 +98,15 @@ function KanbanIssueCard({
   );
 }
 
-export default function KanbanPage() {
-  const issues = useIssueStore((state) => state.issues);
+function KanbanContent() {
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId");
+  const allIssues = useIssueStore((state) => state.issues);
   const updateIssueStatus = useIssueStore((state) => state.updateIssueStatus);
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+  const issues = projectId
+    ? allIssues.filter((issue) => issue.projectId === projectId)
+    : allIssues;
 
   const selectedIssue = issues.find((issue) => issue.id === selectedIssueId) ?? null;
   const unsupportedIssues = issues.filter(
@@ -110,7 +116,7 @@ export default function KanbanPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <header className="border-b border-zinc-800 px-5 py-5 sm:px-7">
-        <h1 className="text-2xl font-semibold">Kanban</h1>
+        <h1 className="text-2xl font-semibold">{projectId ? "Project Kanban" : "Kanban"}</h1>
         <p className="mt-1 text-sm text-zinc-400">
           See where every piece of work stands.
         </p>
@@ -119,7 +125,7 @@ export default function KanbanPage() {
       <div className="p-5 sm:p-7">
         {issues.length === 0 && (
           <p className="mb-5 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/60 p-4 text-sm text-zinc-400">
-            No issues yet. Create an issue to see it in this workflow.
+            No issues present
           </p>
         )}
 
@@ -193,4 +199,8 @@ export default function KanbanPage() {
       )}
     </main>
   );
+}
+
+export default function KanbanPage() {
+  return <Suspense fallback={<main className="p-7 text-zinc-400">Loading kanban…</main>}><KanbanContent /></Suspense>;
 }

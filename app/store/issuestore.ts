@@ -13,6 +13,7 @@ type IssueStore = {
   updateIssue: (id: string, updates: IssueUpdates) => void;
   updateIssueStatus: (id: string, status: Issue["status"]) => void;
   deleteIssue: (id: string) => void;
+  deleteIssuesByProject: (projectId: string) => void;
 };
 
 export const useIssueStore = create<IssueStore>((set) => ({
@@ -45,5 +46,10 @@ export const useIssueStore = create<IssueStore>((set) => ({
   deleteIssue: (id) =>
     set((state) => ({
       issues: state.issues.filter((issue) => issue.id !== id),
+    })),
+
+  deleteIssuesByProject: (projectId) =>
+    set((state) => ({
+      issues: state.issues.filter((issue) => issue.projectId !== projectId),
     })),
 }));

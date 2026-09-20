@@ -6,6 +6,7 @@ import { Issue } from "../types/issue";
 type CreateIssueModalProps = {
   onCreate: (issue: Issue) => void;
   onClose: () => void;
+  projectId: string;
 };
 
 const initialFormValues = {
@@ -19,6 +20,7 @@ const initialFormValues = {
 export default function CreateIssueModal({
   onCreate,
   onClose,
+  projectId,
 }: CreateIssueModalProps) {
   const [formValues, setFormValues] = useState(initialFormValues);
 
@@ -32,7 +34,7 @@ export default function CreateIssueModal({
       status: formValues.status,
       priority: formValues.priority,
       assignee: formValues.assignee,
-      projectId: "project-01",
+      projectId,
       dependencies: [],
     };
 
